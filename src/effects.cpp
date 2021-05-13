@@ -9,5 +9,5 @@ void StairEffects::flashToGo(CRGB * leds, uint16_t cnt) {
 }
 
 void StairEffects::mode1() {
-    ; // CODE
+    ; // CODE 
 }
