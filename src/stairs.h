@@ -1,5 +1,4 @@
-#include <FastLED.h>
-#include <inttypes.h>
+
 #include "effects.h"
 
 #define STEP_MAX  10

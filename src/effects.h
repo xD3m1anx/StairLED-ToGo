@@ -1,5 +1,4 @@
-#include <FastLED.h>
-#include <inttypes.h>
+#include "general.h"
 
 class StairEffects {
     private: 

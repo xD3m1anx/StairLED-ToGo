@@ -5,6 +5,7 @@ void StairEffects::setDelayFTG(uint16_t delay_ms) {
 }
 
 void StairEffects::flashToGo(CRGB * leds, uint16_t cnt) {
+    //control sensors and fill led buffer.
     
 }
 

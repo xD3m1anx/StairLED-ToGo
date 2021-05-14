@@ -1,7 +1,7 @@
 #include <ESP8266WiFi.h>
 #include "stairs.h"
 #include <ArduinoOTA.h>
-#include <FastLED.h>
+#include "general.h"
 
 #define OTA_PGM
 #define WIFI_CONNECT_HOME
