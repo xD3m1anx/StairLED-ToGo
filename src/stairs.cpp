@@ -9,6 +9,12 @@ Stair::Stair(uint8_t amountStep, uint8_t amountLed) {
     mLeds = new CRGB[amountLed];
 }
 
+void Stair::setup() {
+    FastLED.addLeds<CHIPSET, LED_PIN, LED_SCK, BGR>(mLeds, LED_MAX);
+    for(int i = 0; i < LED_MAX; i++)
+        mLeds[i] = CRGB::Black;
+    FastLED.show();
+}
 void Stair::render() {
     FastLED.show();
 }
@@ -87,11 +93,17 @@ void Stair::handle() {
     switch (mMode)
     {
     case FLASHTOGO:
-        StairEffects::flashToGo(mLeds, mAmountLed);
+        for(int i = 0; i < getLedsPerStep(0); i++) {
+            mLeds[i].setHSV(20, 0xff, BRGHT_IDLE);
+        }
+        for (int i = LED_MAX - getLedsPerStep(STEP_MAX - 1); i < LED_MAX; i++) {
+            mLeds[i].setHSV(20, 0xff, BRGHT_IDLE);
+        }
+        FastLED.show();
         break;
 
     case MODE1:
-        StairEffects::mode1();
+        //StairEffects::mode1();
         break;
     
     default:

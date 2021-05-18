@@ -1,51 +1,56 @@
-#include <ESP8266WiFi.h>
-#include "stairs.h"
-#include <ArduinoOTA.h>
-#include "general.h"
+#include "main.h"
 
-#define OTA_PGM
-#define WIFI_CONNECT_HOME
-
-#define OTA_HOSTNAME    "ToksovoStairs"
-
-//led per step
-CRGB leds[LED_MAX];
 Stair stair(STEP_MAX, LED_MAX);
 
-#define checkIdleStep(step)  (step < lps[0] || step >= LED_MAX - lps[STEP_MAX - 1] ? BRGHT_IDLE: 0)
-
-const char* ssid = "IrMa";  
-const char* password = "4045041990";
-
 void setup() {
-    uint8_t lps[] = {1,1,1,1,1,1,1,1,1,1};  
-    stair.setLedPerStep(lps);
-    
-    pinMode(LED_BUILTIN, OUTPUT);
-    Serial.begin(115200);
-    Serial.println("Booting");
-    
-    #ifdef WIFI_CONNECT_HOME
+  /* --- Start setup --- */
+  ledBuiltinBlink(1000);
+  delay(250);
+  ledBuiltinBlink(1000);
+  delay(250);
+
+  
+  /* --- Serial--- */
+  Serial.begin(115200);
+  ledBuiltinBlink(1000);
+  delay(250);
+  Serial.println("Booting");
+  
+  
+  /* --- Wifi support --- */
+  #ifdef WIFI_CONNECT_HOME
     WiFi.mode(WIFI_STA);
     WiFi.begin(ssid, password);
     while (WiFi.waitForConnectResult() != WL_CONNECTED) {
+        ledBuiltinBlink(250);
         WiFi.begin(ssid, password);
         Serial.println("Retrying connection...");
-  }
-    #endif
+    }
+    IPAddress localIp = WiFi.localIP();
+    Serial.print("Start network with IP: ");
+    Serial.println(localIp);
+  #endif
 
-    #ifdef OTA_PGM
+
+  
+  /* --- OTA programming (working with WiFi support) --- */
+  #ifdef OTA_PGM
+    Serial.print("Starting OTA with HOSTNAME: ");
+    Serial.print(OTA_HOSTNAME);
+    Serial.print("...");
     ArduinoOTA.setHostname(OTA_HOSTNAME);
     ArduinoOTA.onStart([]() {
           Serial.println("Start updating ");
+          ledBuiltinBlink(0);
         }
     );
     ArduinoOTA.onEnd([]() {
-          Serial.println("\nEnd");
+          Serial.println("\nEnd");          
         }
     );
     ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
         Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+        ledBuiltinBlink(0);
         }
     );
     ArduinoOTA.onError([](ota_error_t error) {
@@ -64,22 +69,35 @@ void setup() {
         }
     );
     ArduinoOTA.begin();
-    #endif
-    
-    Serial.println("Ready");
-    
-    FastLED.addLeds<CHIPSET, LED_PIN, LED_SCK, BGR>(leds, LED_MAX);
-    for(CRGB & px: leds)
-      px = CRGB::Black;
-    FastLED.show();
+    Serial.println("done.");
+    ledBuiltinBlink(1000);
+  #endif
+  
+  
+  /* --- Stairs setup--- */
+  stair.setup();
+  uint8_t lps[] = {1,1,1,1,1,1,1,1,1,1};  
+  stair.setLedPerStep(lps);
+  
+  
+  /* --- Finish setup--- */
+  ledBuiltinBlink(1000);
+  delay(250);
+  ledBuiltinBlink(1000);
+  delay(250);
+  ledBuiltinBlink(1000);
+  Serial.println("Ready");
 };
 
-uint16_t ledIndx = 0,
-         step = 0;
-uint8_t brght = BRGHT_IDLE;
-
 void loop() {
-  
     ArduinoOTA.handle();
     stair.handle();
+}
+
+
+void ledBuiltinBlink(uint16 d) {
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, LOW);
+  delay(d);
+  digitalWrite(LED_BUILTIN, HIGH);
 }
