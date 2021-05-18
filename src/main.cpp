@@ -14,7 +14,7 @@ Stair stair(STEP_MAX, LED_MAX);
 
 #define checkIdleStep(step)  (step < lps[0] || step >= LED_MAX - lps[STEP_MAX - 1] ? BRGHT_IDLE: 0)
 
-const char* ssid = "IrMa"; 
+const char* ssid = "IrMa";  
 const char* password = "4045041990";
 
 void setup() {
