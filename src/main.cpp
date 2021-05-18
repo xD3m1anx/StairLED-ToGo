@@ -18,7 +18,7 @@ const char* ssid = "IrMa";
 const char* password = "4045041990";
 
 void setup() {
-    uint8_t lps[] = {1,1,1,1,1,1,1,1,1,1};
+    uint8_t lps[] = {1,1,1,1,1,1,1,1,1,1};  
     stair.setLedPerStep(lps);
     
     pinMode(LED_BUILTIN, OUTPUT);
