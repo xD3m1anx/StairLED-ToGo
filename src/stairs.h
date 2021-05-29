@@ -62,7 +62,8 @@ class Stair {
         flags_t mStatus;
         mode_e mMode;
         CRGB * mLeds;
-        StairEvent mEventHandler[2];
+        StairEvent mTopEventHandler;
+        StairEvent mBtmEventHandler;
     
     public:
         Stair(uint8_t amountStep, uint8_t amountLed);

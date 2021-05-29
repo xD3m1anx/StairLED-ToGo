@@ -3,8 +3,10 @@
 Stair::Stair(uint8_t amountStep, uint8_t amountLed) {
     mAmountStep = amountStep;
     mAmountLed = amountLed;
-    mEventHandler[0] = StairEvent();
-    mEventHandler[1] = StairEvent();
+    mTopEventHandler = StairEvent();
+    mTopEventHandler.sensorInit_HCSR04(SENSOR_TOP_TRIG, SENSOR_TOP_ECHO);
+    mBtmEventHandler = StairEvent();
+    mBtmEventHandler.sensorInit_HCSR04(SENSOR_BTM_TRIG, SENSOR_BTM_ECHO);
     mStatus = {0};
     mStatus.idle = true;
     mMode = MODE1;
@@ -92,6 +94,12 @@ uint8_t Stair::getLedsPerStep(uint8_t OnStep) {
 }
 
 void Stair::handle() {
+    static uint32_t oldMs = 0;
+    if(millis() - oldMs >= 1000) {
+        oldMs = millis();
+        mBtmEventHandler.handle();
+        mTopEventHandler.handle();
+    }
     switch (mMode)
     {
     case FLASHTOGO:

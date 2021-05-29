@@ -19,6 +19,9 @@ StairEvent::StairEvent() {
     time = 0;
 }
 
+void StairEvent::sensorInit_HCSR04(int trig, int echo) {
+    sensor = new HCSR04(trig, echo);
+}
 // ---- 
 void StairEvent::timeSave(void) {
     time = millis();
@@ -45,10 +48,11 @@ void StairEvent::timeReset() {
 }
 
 // ---- 
-
-// ---- 
-bool StairEvent::isActivatedEvent(void) {
+bool StairEvent::isActivatedEvent() {
     return this->active;
 }
 
 // ---- 
+void StairEvent::handle() {
+    Serial.println(this->sensor->dist());
+}
