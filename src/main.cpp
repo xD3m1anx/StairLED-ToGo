@@ -76,7 +76,7 @@ void setup() {
   
   /* --- Stairs setup--- */
   stair.setup();
-  uint8_t lps[] = {1,1,1,1,1,1,1,1,1,1};  
+  uint8_t lps[] = {3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3};  
   stair.setLedPerStep(lps);
   
   

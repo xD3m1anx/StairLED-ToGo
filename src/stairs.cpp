@@ -2,10 +2,12 @@
 
 Stair::Stair(uint8_t amountStep, uint8_t amountLed) {
     mAmountStep = amountStep;
-    mAmountLed = amountLed;  
+    mAmountLed = amountLed;
+    mEventHandler[0] = StairEvent();
+    mEventHandler[1] = StairEvent();
     mStatus = {0};
     mStatus.idle = true;
-    mMode = FLASHTOGO;
+    mMode = MODE1;
     mLeds = new CRGB[amountLed];
 }
 
@@ -79,7 +81,7 @@ void Stair::setUnits(uint8_t units) {
 uint8_t Stair::getAmountStep() {
     return mAmountStep;
 }
-    
+
 void Stair::setLedPerStep(uint8_t newLPS[]) {
     for(int i = 0; i < mAmountStep; i++)
         mLps.step[i].ledsOnStep = newLPS[i];
@@ -95,18 +97,88 @@ void Stair::handle() {
     case FLASHTOGO:
         for(int i = 0; i < getLedsPerStep(0); i++) {
             mLeds[i].setHSV(20, 0xff, BRGHT_IDLE);
+            FastLED.show();
         }
+        
+
         for (int i = LED_MAX - getLedsPerStep(STEP_MAX - 1); i < LED_MAX; i++) {
             mLeds[i].setHSV(20, 0xff, BRGHT_IDLE);
+            FastLED.show();
         }
-        FastLED.show();
         break;
 
     case MODE1:
-        //StairEffects::mode1();
+        mode1();
         break;
     
     default:
         break;
+    }
+}
+
+void Stair::mode1() {
+    static uint16_t ledIndex = 0,
+                    stepIndex = 0;
+    static uint8_t bright = BRGHT_IDLE,
+                   hue  =   0;
+    static bool direction = true;
+
+    if(direction) {
+        for(int onStep = 0; onStep < this->getLedsPerStep(onStep); onStep++) {
+            mLeds[ledIndex].setHSV(hue, 255, bright);
+            if(ledIndex < LED_MAX)
+                ledIndex++;
+            else
+                break;
+        }
+        FastLED.show();
+        FastLED.delay(STAIR_DELAY);
+
+        //to next step on stairs
+        if(++bright == BRGHT_WORKING) {
+            bright = 0;
+            stepIndex++;
+            hue+= HUE_PER_STEP;
+        }
+        else { //while bright < BRGHT_WORKING flash only one step
+            ledIndex -= this->getLedsPerStep(stepIndex);
+        }
+
+        //The end direction 'up'
+        if(stepIndex == STEP_MAX) {
+            stepIndex = 0;
+            ledIndex = 0;
+            bright = BRGHT_WORKING;
+            direction = false;
+        }
+    }
+    else {
+        for(int onStep = 0; onStep < this->getLedsPerStep(onStep); onStep++) {
+            mLeds[ledIndex].setHSV(hue, 255, bright);
+            if(ledIndex < LED_MAX)
+                ledIndex++;
+            else
+                break;
+        }
+        FastLED.show();
+        FastLED.delay(STAIR_DELAY);
+
+        //to next step on stairs
+        if(bright-- == 0) {
+            bright = BRGHT_WORKING;
+            stepIndex++;
+            hue-= HUE_PER_STEP;
+        }
+        else { //while bright < BRGHT_WORKING flash only one step
+            ledIndex -= this->getLedsPerStep(stepIndex);
+        }
+
+        //The end direction 'up'
+        if(stepIndex == STEP_MAX) {
+            stepIndex = 0;
+            ledIndex = 0;
+            bright = 0;
+            direction = true;
+        }
     }
 }
