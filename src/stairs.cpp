@@ -141,13 +141,22 @@ void Stair::mode1() {
     FastLED.show();
     FastLED.delay(STAIR_DELAY);
 
+
+    for(int onStep = 0; onStep < this->getLedsPerStep(onStep); onStep++) {
+        mLeds[ledIndex].setHSV(hue, 255, bright);
+        if(ledIndex < LED_MAX)
+            ledIndex++;
+        else
+            break;
+    }
+    FastLED.show();
+    FastLED.delay(STAIR_DELAY);
+
     if(direction) {
         //to next step on stairs
         if(++bright == BRGHT_WORKING) {
             bright = 0;
             stepIndex++;
-            //test
-            hue = (mTopEventHandler.distance <= 255) ? (uint8_t)mTopEventHandler.distance: 255;
         }
         else //while bright < BRGHT_WORKING flash only one step
             ledIndex -= this->getLedsPerStep(stepIndex);
@@ -163,8 +172,6 @@ void Stair::mode1() {
         if(bright-- == 0) {
             bright = BRGHT_WORKING;
             stepIndex++;
-            hue = (mTopEventHandler.distance <= 255) ? (uint8_t)mTopEventHandler.distance: 255;
-            //hue-= HUE_PER_STEP;
         }
         else //while bright < BRGHT_WORKING flash only one step
             ledIndex -= this->getLedsPerStep(stepIndex);
@@ -172,7 +179,7 @@ void Stair::mode1() {
         //The end direction 'down'
         if(stepIndex == STEP_MAX) {
             bright = 0;
-            direction = true;
+            direction = true; 
         }
     }
     if(stepIndex == STEP_MAX) {
