@@ -131,18 +131,17 @@ void Stair::mode1() {
     static uint8_t bright = BRGHT_IDLE,
                    hue  =   0;
     static bool direction = true;
+    for(int onStep = 0; onStep < this->getLedsPerStep(onStep); onStep++) {
+        mLeds[ledIndex].setHSV(hue, 255, bright);
+        if(ledIndex < LED_MAX)
+            ledIndex++;
+        else
+            break;
+    }
+    FastLED.show();
+    FastLED.delay(STAIR_DELAY);
 
     if(direction) {
-        for(int onStep = 0; onStep < this->getLedsPerStep(onStep); onStep++) {
-            mLeds[ledIndex].setHSV(hue, 255, bright);
-            if(ledIndex < LED_MAX)
-                ledIndex++;
-            else
-                break;
-        }
-        FastLED.show();
-        FastLED.delay(STAIR_DELAY);
-
         //to next step on stairs
         if(++bright == BRGHT_WORKING) {
             bright = 0;
@@ -150,29 +149,16 @@ void Stair::mode1() {
             //test
             hue = (mTopEventHandler.distance <= 255) ? (uint8_t)mTopEventHandler.distance: 255;
         }
-        else { //while bright < BRGHT_WORKING flash only one step
+        else //while bright < BRGHT_WORKING flash only one step
             ledIndex -= this->getLedsPerStep(stepIndex);
-        }
 
         //The end direction 'up'
         if(stepIndex == STEP_MAX) {
-            stepIndex = 0;
-            ledIndex = 0;
             bright = BRGHT_WORKING;
             direction = false;
         }
     }
     else {
-        for(int onStep = 0; onStep < this->getLedsPerStep(onStep); onStep++) {
-            mLeds[ledIndex].setHSV(hue, 255, bright);
-            if(ledIndex < LED_MAX)
-                ledIndex++;
-            else
-                break;
-        }
-        FastLED.show();
-        FastLED.delay(STAIR_DELAY);
-
         //to next step on stairs
         if(bright-- == 0) {
             bright = BRGHT_WORKING;
@@ -180,16 +166,17 @@ void Stair::mode1() {
             hue = (mTopEventHandler.distance <= 255) ? (uint8_t)mTopEventHandler.distance: 255;
             //hue-= HUE_PER_STEP;
         }
-        else { //while bright < BRGHT_WORKING flash only one step
+        else //while bright < BRGHT_WORKING flash only one step
             ledIndex -= this->getLedsPerStep(stepIndex);
-        }
 
-        //The end direction 'up'
+        //The end direction 'down'
         if(stepIndex == STEP_MAX) {
-            stepIndex = 0;
-            ledIndex = 0;
             bright = 0;
             direction = true;
         }
+    }
+    if(stepIndex == STEP_MAX) {
+        stepIndex = 0;
+        ledIndex = 0;
     }
 }
