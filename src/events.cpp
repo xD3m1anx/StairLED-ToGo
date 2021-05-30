@@ -25,10 +25,18 @@ void StairEvent::sensorInit_HCSR04(int trig, int echo) {
 }
 // ---- 
 void StairEvent::timeSave(void) {
-    time = millis();
+    this->time = millis();
     activateEvent();
+
+    #ifdef SERIAL_DEBUG
+        Serial.print("Event: Activate. Saved time ");
+        Serial.println(timeGetSaved());        
+    #endif
 }
 
+uint32_t StairEvent::timeGetSaved(void) {
+    return this->time;
+}
 // ---- 
 bool StairEvent::timeMoreThen(uint32_t ms) {
     return (this->time > ms);
@@ -46,6 +54,10 @@ int8_t StairEvent::timeComp(uint32_t t) {
 void StairEvent::timeReset() {
     time = 0;
     deactivateEvent();
+    
+    #ifdef SERIAL_DEBUG
+        Serial.println("Event: Deactivate. Time reset");
+    #endif
 }
 
 // ---- 
@@ -55,11 +67,22 @@ bool StairEvent::isActivatedEvent() {
 
 // ---- 
 void StairEvent::handle() {
-    this->distance = sensor->dist();
-    /*if(dstc - this->distance > EVENT_HANDLE_DST_NOISE) {
-        //timeSave();
-        this->distance = dstc;
-    }*/
+    float dstc = sensor->dist();
+    #ifdef SERIAL_DEBUG
+        Serial.print("Event: distance  ");
+        Serial.println(dstc);
+    #endif
 
-    
+    if(!isActivatedEvent() && dstc - this->distance >= EVENT_HANDLE_DST_NOISE) {
+        timeSave();
+        this->distance = dstc;
+    }
+    else if(isActivatedEvent() && millis() - timeGetSaved() >= EVENT_HANDLE_TIMEOUT) {
+        deactivateEvent();
+        timeReset();
+        this->distance = dstc;
+        #ifdef SERIAL_DEBUG 
+            Serial.println("Event: Timeout active status. Event deactivate.");
+        #endif
+    }    
 }
