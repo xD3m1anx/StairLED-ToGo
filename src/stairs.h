@@ -87,7 +87,7 @@ class Stair {
         void setLedPerStep(uint8_t newLPS[]);
         uint8_t getLedsPerStep(uint8_t OnStep);
         void setup();
-        void mode1();
+        void stairMode_FlashToGo();
         void handle();  
 };
 

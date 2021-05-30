@@ -9,7 +9,7 @@ Stair::Stair(uint8_t amountStep, uint8_t amountLed) {
     mBtmEventHandler.sensorInit_HCSR04(SENSOR_BTM_TRIG, SENSOR_BTM_ECHO);
     mStatus = {0};
     mStatus.idle = true;
-    mMode = MODE1;
+    mMode = FLASHTOGO;
     mLeds = new CRGB[amountLed];
 }
 
@@ -104,20 +104,11 @@ void Stair::handle() {
     switch (mMode)
     {
     case FLASHTOGO:
-        for(int i = 0; i < getLedsPerStep(0); i++) {
-            mLeds[i].setHSV(20, 0xff, BRGHT_IDLE);
-            FastLED.show();
-        }
-        
-
-        for (int i = LED_MAX - getLedsPerStep(STEP_MAX - 1); i < LED_MAX; i++) {
-            mLeds[i].setHSV(20, 0xff, BRGHT_IDLE);
-            FastLED.show();
-        }
+        stairMode_FlashToGo();
         break;
 
     case MODE1:
-        mode1();
+        
         break;
     
     default:
@@ -125,23 +116,12 @@ void Stair::handle() {
     }
 }
 
-void Stair::mode1() {
+void Stair::stairMode_FlashToGo() {
     static uint16_t ledIndex = 0,
                     stepIndex = 0;
     static uint8_t bright = BRGHT_IDLE,
                    hue  =   0;
     static bool direction = true;
-    for(int onStep = 0; onStep < this->getLedsPerStep(onStep); onStep++) {
-        mLeds[ledIndex].setHSV(hue, 255, bright);
-        if(ledIndex < LED_MAX)
-            ledIndex++;
-        else
-            break;
-    }
-    FastLED.show();
-    FastLED.delay(STAIR_DELAY);
-
-
     for(int onStep = 0; onStep < this->getLedsPerStep(onStep); onStep++) {
         mLeds[ledIndex].setHSV(hue, 255, bright);
         if(ledIndex < LED_MAX)
