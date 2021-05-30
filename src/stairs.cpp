@@ -94,12 +94,13 @@ uint8_t Stair::getLedsPerStep(uint8_t OnStep) {
 }
 
 void Stair::handle() {
-    static uint32_t oldMs = 0;
-    if(millis() - oldMs >= 1000) {
-        oldMs = millis();
+    static uint32_t oldMS = 0;
+    if(millis() - oldMS >= EVENT_HANDLE_TIMEMS) {
+        oldMS = millis();
         mBtmEventHandler.handle();
         mTopEventHandler.handle();
     }
+
     switch (mMode)
     {
     case FLASHTOGO:
@@ -146,7 +147,8 @@ void Stair::mode1() {
         if(++bright == BRGHT_WORKING) {
             bright = 0;
             stepIndex++;
-            hue+= HUE_PER_STEP;
+            //test
+            hue = (mTopEventHandler.distance <= 255) ? (uint8_t)mTopEventHandler.distance: 255;
         }
         else { //while bright < BRGHT_WORKING flash only one step
             ledIndex -= this->getLedsPerStep(stepIndex);
@@ -175,7 +177,8 @@ void Stair::mode1() {
         if(bright-- == 0) {
             bright = BRGHT_WORKING;
             stepIndex++;
-            hue-= HUE_PER_STEP;
+            hue = (mTopEventHandler.distance <= 255) ? (uint8_t)mTopEventHandler.distance: 255;
+            //hue-= HUE_PER_STEP;
         }
         else { //while bright < BRGHT_WORKING flash only one step
             ledIndex -= this->getLedsPerStep(stepIndex);

@@ -15,8 +15,9 @@ void StairEvent::deactivateEvent(void) {
 
 // ---- 
 StairEvent::StairEvent() {
-    active = false;
-    time = 0;
+    this->active = false;
+    this->time = 0;
+    this->distance = 0;
 }
 
 void StairEvent::sensorInit_HCSR04(int trig, int echo) {
@@ -54,5 +55,11 @@ bool StairEvent::isActivatedEvent() {
 
 // ---- 
 void StairEvent::handle() {
-    Serial.println(this->sensor->dist());
+    this->distance = sensor->dist();
+    /*if(dstc - this->distance > EVENT_HANDLE_DST_NOISE) {
+        //timeSave();
+        this->distance = dstc;
+    }*/
+
+    
 }
