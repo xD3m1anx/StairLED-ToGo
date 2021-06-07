@@ -3,11 +3,12 @@
 #include "general.h"
 
 /* --- Stairs settings --- */
-#define STEP_MAX  12
-#define STAIR_SPEED  6    //steps per second
-#define BRGHT_IDLE  15
-#define BRGHT_WORKING  200
-#define STAIR_DELAY  (1000 / (BRGHT_WORKING - BRGHT_IDLE) / STAIR_SPEED)
+#define STEP_MAX            12      //Stairs length in steps
+#define STAIR_SPEED         2       //Rising/Falling speed in steps per second
+#define BRGHT_PREDIV        5
+#define BRGHT_IDLE          40      //must be div. BRGHT_PREDIV 
+#define BRGHT_WORKING       225     //must be div. BRGHT_PREDIV
+#define STAIR_DELAY         (1000 / ((BRGHT_WORKING - BRGHT_IDLE) / BRGHT_PREDIV) / STAIR_SPEED)
 /* --- end --- */
 
 /* --- Leds settings --- */
@@ -18,7 +19,6 @@
 /* --- end --- */
 
 #define HUE_PER_STEP        (255 / STEP_MAX)
-
 
 typedef unsigned char uint8_t;
 
@@ -62,12 +62,17 @@ class Stair {
         flags_t mStatus;
         mode_e mMode;
         CRGB * mLeds;
+        uint8_t mStepIndex;
+        uint8_t mLedIndex;
+        uint8_t mHue;
+        uint8_t mSaturation;
+        uint8_t mValue;
         StairEvent mTopEventHandler;
         StairEvent mBtmEventHandler;
     
     public:
         Stair(uint8_t amountStep, uint8_t amountLed);
-        void render();
+        int16_t render();
         void render(CRGB * stairLeds, CRGB fillPixel);
         void draw();
         void draw(CRGB * stairLeds, CRGB fill);
@@ -88,6 +93,7 @@ class Stair {
         uint8_t getLedsPerStep(uint8_t OnStep);
         void setup();
         void stairMode_FlashToGo();
+        void stairMode_FlashToGo2();
         void handle();  
 };
 

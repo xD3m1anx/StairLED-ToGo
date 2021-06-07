@@ -3,43 +3,56 @@
 /* === PRIVATE === */
 // ---- 
 void StairEvent::activateEvent(void) {
-    this->active = true;
+    #ifdef SERIAL_DEBUG
+        Serial.print("Event: ");
+        Serial.print(name);
+        Serial.println(": Activate.");
+    #endif
+    active = true;
 }
 
 // ---- 
 void StairEvent::deactivateEvent(void) {
-    this->active = false;
+    #ifdef SERIAL_DEBUG
+        Serial.print("Event: ");
+        Serial.print(name);
+        Serial.println(": Deactivate.");
+    #endif
+    active = false;
 }
 /* === END PRIVATE === */
 
 
 // ---- 
 StairEvent::StairEvent() {
-    this->active = false;
-    this->time = 0;
-    this->distance = 0;
+    active = false;
+    time = 0;
+    distance = 0;
 }
 
-void StairEvent::sensorInit_HCSR04(int trig, int echo) {
+void StairEvent::sensorInit_HCSR04(const char * name, int trig, int echo) {
+    this->name = String(name);
     sensor = new HCSR04(trig, echo);
 }
 // ---- 
 void StairEvent::timeSave(void) {
-    this->time = millis();
+    time = millis();
     activateEvent();
 
     #ifdef SERIAL_DEBUG
-        Serial.print("Event: Activate. Saved time ");
+        Serial.print("Event: ");
+        Serial.print(name);
+        Serial.print(": Saved time ");
         Serial.println(timeGetSaved());        
     #endif
 }
 
 uint32_t StairEvent::timeGetSaved(void) {
-    return this->time;
+    return time;
 }
 // ---- 
 bool StairEvent::timeMoreThen(uint32_t ms) {
-    return (this->time > ms);
+    return (time > ms);
 }
 
 // ---- 
@@ -56,33 +69,39 @@ void StairEvent::timeReset() {
     deactivateEvent();
     
     #ifdef SERIAL_DEBUG
-        Serial.println("Event: Deactivate. Time reset");
+        Serial.print("Event: ");
+        Serial.print(name);
+        Serial.println(": Time reset.");
     #endif
 }
 
 // ---- 
 bool StairEvent::isActivatedEvent() {
-    return this->active;
+    return active;
 }
 
 // ---- 
 void StairEvent::handle() {
     float dstc = sensor->dist();
     #ifdef SERIAL_DEBUG
-        Serial.print("Event: distance  ");
+        Serial.print("Event: ");
+        Serial.print(name);
+        Serial.print(": distance ");
         Serial.println(dstc);
     #endif
-
-    if(!isActivatedEvent() && dstc - this->distance >= EVENT_HANDLE_DST_NOISE) {
+    //if sensor find object
+    if(!isActivatedEvent() && dstc - distance > EVENT_HANDLE_DST_NOISE) {
         timeSave();
-        this->distance = dstc;
+        distance = dstc;
     }
+    //if time is out of object
     else if(isActivatedEvent() && millis() - timeGetSaved() >= EVENT_HANDLE_TIMEOUT) {
-        deactivateEvent();
         timeReset();
-        this->distance = dstc;
+        distance = dstc;
         #ifdef SERIAL_DEBUG 
-            Serial.println("Event: Timeout active status. Event deactivate.");
+            Serial.print("Event: ");
+            Serial.print(this->name);
+            Serial.println(": Timeout active status.");
         #endif
     }    
 }

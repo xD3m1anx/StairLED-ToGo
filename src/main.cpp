@@ -4,15 +4,15 @@ Stair stair(STEP_MAX, LED_MAX);
 
 void setup() {
   /* --- Start setup --- */
-  ledBuiltinBlink(1000);
+  BLINK_BUILTIN(1000);
   delay(250);
-  ledBuiltinBlink(1000);
+  BLINK_BUILTIN(1000);
   delay(250);
 
   
   /* --- Serial--- */
   Serial.begin(115200);
-  ledBuiltinBlink(1000);
+  BLINK_BUILTIN(1000);
   delay(250);
   Serial.println("Booting");
   
@@ -22,7 +22,7 @@ void setup() {
     WiFi.mode(WIFI_STA);
     WiFi.begin(ssid, password);
     while (WiFi.waitForConnectResult() != WL_CONNECTED) {
-        ledBuiltinBlink(250);
+        BLINK_BUILTIN(250);
         WiFi.begin(ssid, password);
         Serial.println("Retrying connection...");
     }
@@ -41,7 +41,7 @@ void setup() {
     ArduinoOTA.setHostname(OTA_HOSTNAME);
     ArduinoOTA.onStart([]() {
           Serial.println("Start updating ");
-          ledBuiltinBlink(0);
+          BLINK_BUILTIN(0);
         }
     );
     ArduinoOTA.onEnd([]() {
@@ -50,7 +50,7 @@ void setup() {
     );
     ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
         Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
-        ledBuiltinBlink(0);
+        BLINK_BUILTIN(0);
         }
     );
     ArduinoOTA.onError([](ota_error_t error) {
@@ -70,7 +70,7 @@ void setup() {
     );
     ArduinoOTA.begin();
     Serial.println("done.");
-    ledBuiltinBlink(1000);
+    BLINK_BUILTIN(1000);
   #endif
   
   
@@ -81,11 +81,11 @@ void setup() {
   
   
   /* --- Finish setup--- */
-  ledBuiltinBlink(1000);
+  BLINK_BUILTIN(1000);
   delay(250);
-  ledBuiltinBlink(1000);
+  BLINK_BUILTIN(1000);
   delay(250);
-  ledBuiltinBlink(1000);
+  BLINK_BUILTIN(1000);
   Serial.println("Ready");
 };
 

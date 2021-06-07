@@ -4,13 +4,15 @@ Stair::Stair(uint8_t amountStep, uint8_t amountLed) {
     mAmountStep = amountStep;
     mAmountLed = amountLed;
     mTopEventHandler = StairEvent();
-    mTopEventHandler.sensorInit_HCSR04(SENSOR_TOP_TRIG, SENSOR_TOP_ECHO);
+    mTopEventHandler.sensorInit_HCSR04(SENSOR_TOP_NAME, SENSOR_TOP_TRIG, SENSOR_TOP_ECHO);
     mBtmEventHandler = StairEvent();
-    mBtmEventHandler.sensorInit_HCSR04(SENSOR_BTM_TRIG, SENSOR_BTM_ECHO);
+    mBtmEventHandler.sensorInit_HCSR04(SENSOR_BTM_NAME, SENSOR_BTM_TRIG, SENSOR_BTM_ECHO);
     mStatus = {0};
     mStatus.idle = true;
     mMode = FLASHTOGO;
     mLeds = new CRGB[amountLed];
+    mStepIndex = 0;
+    mLedIndex = 0;
 }
 
 void Stair::setup() {
@@ -19,19 +21,15 @@ void Stair::setup() {
         mLeds[i] = CRGB::Black;
     FastLED.show();
 }
-void Stair::render() {
-    FastLED.show();
-}
-void Stair::render(CRGB * stairLeds, CRGB fillPixel) {
-    for(int i = 0; i < LED_MAX; i++) {
-        stairLeds[i] = fillPixel;
+int16_t Stair::render() {
+    for(int onStep = 0; onStep < getLedsPerStep(onStep); onStep++) {
+        mLeds[mLedIndex].setHSV(mHue, mSaturation, mValue);
+        mLedIndex++;
     }
     FastLED.show();
+    FastLED.delay(STAIR_DELAY);
 }
 
-void Stair::draw() {
-
-}
 void Stair::draw(CRGB * stairLeds, CRGB fill) {
     for(int i = 0; i < LED_MAX; i++) {
         stairLeds[i] = fill;
@@ -103,67 +101,105 @@ void Stair::handle() {
 
     switch (mMode)
     {
-    case FLASHTOGO:
-        stairMode_FlashToGo();
-        break;
+        case FLASHTOGO:
+            stairMode_FlashToGo2();
+            break;
 
-    case MODE1:
-        
-        break;
+        case MODE1:           
+            break;
+
+        default:
+            break;
+    }
+}
+
+void Stair::stairMode_FlashToGo2() {
+    static bool direction = true;
+
+    if(direction) {
+
+        //All leds are working on current step. Stepup!
+        if(mValue >= BRGHT_WORKING) {
+            //Control minimum bright for first and last steps
+            mValue = ( mStepIndex == 0 || mStepIndex == STEP_MAX - 1 ) ? BRGHT_IDLE : 0;
+            mStepIndex++ ;
+        }
+        //Already brightup leds on current step
+
+        //Stiars. All leds are working
+        if(mStepIndex == STEP_MAX) {
+            mStepIndex = 0;
+            mLedIndex = 0;
+            mValue = BRGHT_WORKING;
+        }
+
+        //show
+        render();
+        mLedIndex -= this->getLedsPerStep(mStepIndex);
+        mValue += BRGHT_PREDIV;
+    }
     
-    default:
-        break;
+    if(!direction) {
+
+        render();
     }
 }
 
 void Stair::stairMode_FlashToGo() {
-    static uint16_t ledIndex = 0,
+    /*static uint16_t ledIndex = 0,
                     stepIndex = 0;
-    static uint8_t bright = BRGHT_IDLE,
-                   hue  =   0;
+    static uint8_t  value = BRGHT_IDLE,
+                    satur = 255,
+                    hue  =   0;*/
     static bool direction = true;
-    for(int onStep = 0; onStep < this->getLedsPerStep(onStep); onStep++) {
-        mLeds[ledIndex].setHSV(hue, 255, bright);
-        if(ledIndex < LED_MAX)
-            ledIndex++;
-        else
-            break;
-    }
-    FastLED.show();
-    FastLED.delay(STAIR_DELAY);
+
+    render();
 
     if(direction) {
         //to next step on stairs
-        if(++bright == BRGHT_WORKING) {
-            bright = 0;
-            stepIndex++;
+        mValue += BRGHT_PREDIV;
+        if((mValue >= BRGHT_WORKING)) {
+            if(mStepIndex == 0 || mStepIndex == STEP_MAX - 2) {
+                mValue = BRGHT_IDLE;
+                Serial.printf("Step = %d, value = %d\n", mStepIndex, mValue);
+            }
+            else {
+                mValue = 0;
+                Serial.printf("Step = %d, value = %d\n", mStepIndex, mValue);
+            }
+            mStepIndex++;
         }
         else //while bright < BRGHT_WORKING flash only one step
-            ledIndex -= this->getLedsPerStep(stepIndex);
+            mLedIndex -= this->getLedsPerStep(mStepIndex);
 
-        //The end direction 'up'
-        if(stepIndex == STEP_MAX) {
-            bright = BRGHT_WORKING;
+        //The end direction 'rising'
+        if(mStepIndex >= STEP_MAX) {
+            mValue = BRGHT_WORKING;  //for dir = falling
             direction = false;
         }
     }
     else {
         //to next step on stairs
-        if(bright-- == 0) {
-            bright = BRGHT_WORKING;
-            stepIndex++;
-        }
-        else //while bright < BRGHT_WORKING flash only one step
-            ledIndex -= this->getLedsPerStep(stepIndex);
+        if((mValue == 0 && (mStepIndex > 0 && mStepIndex < STEP_MAX)) ||  (mValue == BRGHT_IDLE && (mStepIndex == 0 || mStepIndex == (STEP_MAX - 1)))) {  //if index equal 0 or MAX. In min or max
+            mValue = BRGHT_WORKING;
+            Serial.printf("Step = %d, value = %d\n", mStepIndex, mValue);
+            mStepIndex++;
 
-        //The end direction 'down'
-        if(stepIndex == STEP_MAX) {
-            bright = 0;
+        }
+        else {  //while bright < BRGHT_WORKING flash only one step
+            mValue -= BRGHT_PREDIV;
+            mLedIndex -= this->getLedsPerStep(mStepIndex);
+        }
+        
+        //The end direction 'falling'
+        if(mStepIndex == STEP_MAX) {
+            mValue = BRGHT_IDLE;     //for dir = rising
             direction = true; 
         }
     }
-    if(stepIndex == STEP_MAX) {
-        stepIndex = 0;
-        ledIndex = 0;
+
+    if(mStepIndex == STEP_MAX) {
+        mStepIndex = 0;
+        mLedIndex = 0;
     }
 }
