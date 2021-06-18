@@ -64,16 +64,18 @@ class Stair {
         CRGB * mLeds;
         uint8_t mStepIndex;
         uint8_t mLedIndex;
-        uint8_t mHue;
-        uint8_t mSaturation;
-        uint8_t mValue;
         StairEvent mTopEventHandler;
         StairEvent mBtmEventHandler;
     
     public:
+        uint8_t mHue;
+        uint8_t mSaturation;
+        uint8_t mValue;
+        
         Stair(uint8_t amountStep, uint8_t amountLed);
         int16_t render();
         void render(CRGB * stairLeds, CRGB fillPixel);
+        void drawStep();
         void draw();
         void draw(CRGB * stairLeds, CRGB fill);
         void standBy();

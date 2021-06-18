@@ -22,12 +22,17 @@ void Stair::setup() {
     FastLED.show();
 }
 int16_t Stair::render() {
-    for(int onStep = 0; onStep < getLedsPerStep(onStep); onStep++) {
+    drawStep(mStepIndex);
+    FastLED.show();
+    FastLED.delay(STAIR_DELAY);
+}
+
+void Stair::drawStep(uint8_t nStep) {
+    //loop for n-leds on step № nStep.
+    for(int onStep = 0; onStep < getLedsPerStep(nStep); onStep++) {
         mLeds[mLedIndex].setHSV(mHue, mSaturation, mValue);
         mLedIndex++;
     }
-    FastLED.show();
-    FastLED.delay(STAIR_DELAY);
 }
 
 void Stair::draw(CRGB * stairLeds, CRGB fill) {
@@ -133,10 +138,9 @@ void Stair::stairMode_FlashToGo2() {
             mValue = BRGHT_WORKING;
         }
 
-        //show
-        render();
-        mLedIndex -= this->getLedsPerStep(mStepIndex);
-        mValue += BRGHT_PREDIV;
+        render();                                           //show
+        mLedIndex -= this->getLedsPerStep(mStepIndex);      //stepback for finish brightup
+        mValue += BRGHT_PREDIV;                             //brightup
     }
     
     if(!direction) {
