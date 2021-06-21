@@ -1,6 +1,14 @@
 #include "main.h"
+/* --------------------------------------------------------------------------------------------------------------- */
+
+const char* ssid = "IrMa";  
+const char* password = "4045041990";
 
 Stair stair(STEP_MAX, LED_MAX);
+RemoteDebug Debug;
+BlynkTimer timer_Uptime;
+
+/* --------------------------------------------------------------------------------------------------------------- */
 
 void setup() {
   /* --- Start setup --- */
@@ -15,6 +23,18 @@ void setup() {
   BLINK_BUILTIN(1000);
   delay(250);
   Serial.println("Booting");
+
+  Blynk.begin(BLYNK_AUTH_TOKEN, ssid, password, BLYNK_SERVER_IP, 8080);
+  timer_Uptime.setInterval(1000UL, localUptime);
+  /* Check connection. Restart ESP if need */
+  while(!Blynk.connected()) {
+    for(int i = 0; i < 10; i ++) {
+      BLINK_BUILTIN(250);
+    }
+    delay(1000);
+    ESP.restart();
+  }
+  
   
   
   /* --- Wifi support --- */
@@ -30,8 +50,6 @@ void setup() {
     Serial.print("Start network with IP: ");
     Serial.println(localIp);
   #endif
-
-
   
   /* --- OTA programming (working with WiFi support) --- */
   #ifdef OTA_PGM
@@ -73,7 +91,32 @@ void setup() {
     BLINK_BUILTIN(1000);
   #endif
   
+  	/* --- RemoteDebug --- */
+  #ifdef TELNET_DEBUG
+    Debug.begin(HOST_NAME); // Initialize the WiFi server
+    Debug.setResetCmdEnabled(true); // Enable the reset command
+    Debug.showProfiler(true); // Profiler (Good to measure times, to optimize codes)
+    Debug.showColors(true); // Colors
+
+    String hostNameWifi = HOST_NAME;
+  hostNameWifi.concat(".local");
+
+  #ifdef ESP8266 // Only for it
+    WiFi.hostname(hostNameWifi);
+  #endif
+
+  #ifdef USE_MDNS  // Use the MDNS ?
+    /*if (MDNS.begin(HOST_NAME)) {
+        Debug.print("* MDNS responder started. Hostname -> ");
+        Debug.println(HOST_NAME);
+    }*/
+    MDNS.begin(HOST_NAME);
+    MDNS.addService("telnet", "tcp", 23);
+
+  #endif
+  #endif
   
+
   /* --- Stairs setup--- */
   stair.setup();
   uint8_t lps[] = {3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3};  
@@ -89,11 +132,56 @@ void setup() {
   Serial.println("Ready");
 };
 
-void loop() {
-    ArduinoOTA.handle();
-    stair.handle();
+/* --------------------------------------------------------------------------------------------------------------- */
+#define VIRT_MDOE     V1
+#define VIRT_COLOR    V0
+
+BLYNK_WRITE(VIRT_COLOR) {
+  CRGB rgb(param[0].asInt(), param[1].asInt(), param[2].asInt());
+  CHSV color = rgb2hsv_approximate(rgb);
+  stair.mHue = color.hue;
+  stair.mSaturation = color.saturation;
+  stair.mValue = color.value;
 }
 
+BLYNK_WRITE(VIRT_MDOE) {
+  switch (param.asInt())
+  {
+    case 1:   stair.setMode(FLASHTOGO);   break;
+    case 2:   stair.setMode(MODE1);       break;
+    case 3:                               break;
+    case 0:   default:                    break;
+  }
+}
+
+uint32_t mLastTime;
+
+void loop() {
+  #ifdef OTA_PGM
+    ArduinoOTA.handle();
+  #endif
+
+  #ifdef TELNET_DEBUG
+    if(millis() - mLastTime >= DEBUG_MSG_INTERVAL) {
+      Debug.print("Local uptime: ");
+      Debug.println(millis() / 1000);
+
+      Debug.printf("HSV: [%d : %d : %d]\n", stair.mHue, stair.mSaturation, stair.mValue);
+
+      mLastTime = millis();
+    }
+    Debug.handle();
+  #endif
+
+  Blynk.run();
+  ArduinoOTA.handle();
+  stair.handle();
+  timer_Uptime.run();
+}
+
+void localUptime(void) {
+  Blynk.virtualWrite(BPIN_UPTIME, millis() / 1000);
+}
 
 void ledBuiltinBlink(uint16 d) {
   pinMode(LED_BUILTIN, OUTPUT);

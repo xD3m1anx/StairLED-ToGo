@@ -22,20 +22,6 @@
 
 typedef unsigned char uint8_t;
 
-#define ST_UNITS   0
-#define ST_DRAW    2
-#define ST_RENDER  3
-#define ST_STANDBY 4
-#define ST_IDLE    5
-
-typedef struct flags_s {
-    uint8_t units  :2;
-    bool draw      :1;
-    bool render    :1;
-    bool standBy   :1;
-    bool idle      :1;
-} flags_t;
-
 /* --- Режим работы --- */
 enum mode_e {FLASHTOGO, MODE1};
 
@@ -59,7 +45,6 @@ class Stair {
         uint8_t mAmountStep;    
         uint16_t mAmountLed;
         steps_t mLps;
-        flags_t mStatus;
         mode_e mMode;
         CRGB * mLeds;
         uint8_t mStepIndex;
@@ -73,29 +58,24 @@ class Stair {
         uint8_t mValue;
         
         Stair(uint8_t amountStep, uint8_t amountLed);
+
         int16_t render();
         void render(CRGB * stairLeds, CRGB fillPixel);
-        void drawStep();
+
+        void drawStep(uint8_t nStep);
         void draw();
         void draw(CRGB * stairLeds, CRGB fill);
-        void standBy();
-        void idle();
-        bool isIdle();  
-        bool isDraw();
-        bool isRender();
-        bool isStandBy();
-        uint8_t getUnits();
-        void setIdle(bool flag);  
-        void setDraw(bool flag);
-        void setRender(bool flag);
-        void setStandBy(bool flag);
-        void setUnits(uint8_t units);
+        
+
         uint8_t getAmountStep();
         void setLedPerStep(uint8_t newLPS[]);
         uint8_t getLedsPerStep(uint8_t OnStep);
+
         void setup();
+        void setMode(mode_e mode);
         void stairMode_FlashToGo();
         void stairMode_FlashToGo2();
+        void mode1();
         void handle();  
 };
 

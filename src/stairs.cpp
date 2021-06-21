@@ -7,8 +7,6 @@ Stair::Stair(uint8_t amountStep, uint8_t amountLed) {
     mTopEventHandler.sensorInit_HCSR04(SENSOR_TOP_NAME, SENSOR_TOP_TRIG, SENSOR_TOP_ECHO);
     mBtmEventHandler = StairEvent();
     mBtmEventHandler.sensorInit_HCSR04(SENSOR_BTM_NAME, SENSOR_BTM_TRIG, SENSOR_BTM_ECHO);
-    mStatus = {0};
-    mStatus.idle = true;
     mMode = FLASHTOGO;
     mLeds = new CRGB[amountLed];
     mStepIndex = 0;
@@ -21,6 +19,11 @@ void Stair::setup() {
         mLeds[i] = CRGB::Black;
     FastLED.show();
 }
+
+void Stair::setMode(mode_e mode) {
+    mMode = mode;
+}
+
 int16_t Stair::render() {
     drawStep(mStepIndex);
     FastLED.show();
@@ -29,7 +32,7 @@ int16_t Stair::render() {
 
 void Stair::drawStep(uint8_t nStep) {
     //loop for n-leds on step № nStep.
-    for(int onStep = 0; onStep < getLedsPerStep(nStep); onStep++) {
+    for(int onStep = 0; onStep < getLedsPerStep(mStepIndex); onStep++) {
         mLeds[mLedIndex].setHSV(mHue, mSaturation, mValue);
         mLedIndex++;
     }
@@ -39,48 +42,6 @@ void Stair::draw(CRGB * stairLeds, CRGB fill) {
     for(int i = 0; i < LED_MAX; i++) {
         stairLeds[i] = fill;
     }
-}
-
-void Stair::standBy() {
-    if(Stair::isIdle()) {
-       ;
-    }
-}
-void Stair::idle() {
-    
-}
-
-bool Stair::isIdle() {
-    return mStatus.idle;
-}  
-bool Stair::isDraw() {
-    return mStatus.draw;
-}
-bool Stair::isRender() {
-    return mStatus.render;
-}
-bool Stair::isStandBy() {
-    return mStatus.standBy;
-}
-
-uint8_t Stair::getUnits() {
-    return mStatus.units;
-}
-
-void Stair::setIdle(bool flag) {
-    this->mStatus.idle = flag;
-}  
-void Stair::setDraw(bool flag) {
-    this->mStatus.draw = flag;
-}
-void Stair::setRender(bool flag) {
-    this->mStatus.render = flag;
-}
-void Stair::setStandBy(bool flag) {
-    this->mStatus.standBy = flag;
-}
-void Stair::setUnits(uint8_t units) {
-    this->mStatus.units = units;
 }
 
 uint8_t Stair::getAmountStep() {
@@ -110,7 +71,8 @@ void Stair::handle() {
             stairMode_FlashToGo2();
             break;
 
-        case MODE1:           
+        case MODE1: 
+            mode1();          
             break;
 
         default:
@@ -139,7 +101,7 @@ void Stair::stairMode_FlashToGo2() {
         }
 
         render();                                           //show
-        mLedIndex -= this->getLedsPerStep(mStepIndex);      //stepback for finish brightup
+        mLedIndex -= getLedsPerStep(mStepIndex);      //stepback for finish brightup
         mValue += BRGHT_PREDIV;                             //brightup
     }
     
@@ -206,4 +168,11 @@ void Stair::stairMode_FlashToGo() {
         mStepIndex = 0;
         mLedIndex = 0;
     }
+}
+
+void Stair::mode1() {
+    for(int i = 0; i < LED_MAX; i++) {
+        mLeds[i].setHSV(mHue, mSaturation, mValue);
+    }
+    FastLED.show();
 }
