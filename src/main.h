@@ -22,7 +22,7 @@
 #define BLYNK_SERVER_IP                 "192.168.0.50"
 #define BLYNK_AUTH_TOKEN                "T4ArKw_cnTk0Gb35OUjI8UDYgjyPAZ1e"      //*.*.*.60
 
-#define DEBUG_MSG_INTERVAL              (1000)                                 //ms 
+#define DEBUG_MSG_INTERVAL              (5000)                                 //ms 
 #define BPIN_UPTIME                     V9                                      //*.*.*.60
 
 /* --------------------------------------------------------------------------------------------------------------- */

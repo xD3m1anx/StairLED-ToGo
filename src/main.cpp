@@ -186,6 +186,7 @@ void localUptime(void) {
 void ledBuiltinBlink(uint16 d) {
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
-  delay(d);
+  delay(d/2);
   digitalWrite(LED_BUILTIN, HIGH);
+  delay(d/2);
 }
