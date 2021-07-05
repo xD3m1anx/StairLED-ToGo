@@ -29,7 +29,7 @@ void setup() {
   /* Check connection. Restart ESP if need */
   while(!Blynk.connected()) {
     for(int i = 0; i < 10; i ++) {
-      BLINK_BUILTIN(250);
+      BLINK_BUILTIN(100);
     }
     delay(1000);
     ESP.restart();
@@ -49,6 +49,7 @@ void setup() {
     IPAddress localIp = WiFi.localIP();
     Serial.print("Start network with IP: ");
     Serial.println(localIp);
+    BLINK_BUILTIN(1000);
   #endif
   
   /* --- OTA programming (working with WiFi support) --- */
@@ -99,21 +100,22 @@ void setup() {
     Debug.showColors(true); // Colors
 
     String hostNameWifi = HOST_NAME;
-  hostNameWifi.concat(".local");
+    hostNameWifi.concat(".local");
 
-  #ifdef ESP8266 // Only for it
-    WiFi.hostname(hostNameWifi);
-  #endif
+    #ifdef ESP8266 // Only for it
+      WiFi.hostname(hostNameWifi);
+    #endif
 
-  #ifdef USE_MDNS  // Use the MDNS ?
+    #ifdef USE_MDNS  // Use the MDNS ?
     /*if (MDNS.begin(HOST_NAME)) {
         Debug.print("* MDNS responder started. Hostname -> ");
         Debug.println(HOST_NAME);
     }*/
-    MDNS.begin(HOST_NAME);
-    MDNS.addService("telnet", "tcp", 23);
+      MDNS.begin(HOST_NAME);
+      MDNS.addService("telnet", "tcp", 23);
+    #endif
 
-  #endif
+    BLINK_BUILTIN(1000);
   #endif
   
 
@@ -124,16 +126,16 @@ void setup() {
   
   
   /* --- Finish setup--- */
-  BLINK_BUILTIN(1000);
-  delay(250);
-  BLINK_BUILTIN(1000);
-  delay(250);
-  BLINK_BUILTIN(1000);
+  BLINK_BUILTIN(250);
+  delay(25);
+  BLINK_BUILTIN(250);
+  delay(25);
+  BLINK_BUILTIN(250);
   Serial.println("Ready");
 };
 
 /* --------------------------------------------------------------------------------------------------------------- */
-#define VIRT_MDOE     V1
+#define VIRT_MODE     V1
 #define VIRT_COLOR    V0
 
 BLYNK_WRITE(VIRT_COLOR) {
@@ -144,14 +146,10 @@ BLYNK_WRITE(VIRT_COLOR) {
   stair.mValue = color.value;
 }
 
-BLYNK_WRITE(VIRT_MDOE) {
-  switch (param.asInt())
-  {
-    case 1:   stair.setMode(FLASHTOGO);   break;
-    case 2:   stair.setMode(MODE1);       break;
-    case 3:                               break;
-    case 0:   default:                    break;
-  }
+BLYNK_WRITE(VIRT_MODE) {
+  int mode = param.asInt();
+  if(mode > 0 && mode <= DEMO)
+    stair.setMode((mode_e)mode);
 }
 
 uint32_t mLastTime;

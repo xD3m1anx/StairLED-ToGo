@@ -1,6 +1,10 @@
 #include "general.h"
 #include <HCSR04.h>
 
+#ifndef EVENTS_PRINT
+    #define EVENTS_PRINT Serial
+#endif
+
 #define EVENT_HANDLE_TIMEMS     (500)      //time min T-hcsr04 (0.011 s)
 #define EVENT_HANDLE_DST_NOISE  (50)        //in cm
 #define EVENT_HANDLE_TIMEOUT    (15000)     //in ms
@@ -33,6 +37,6 @@ class StairEvent {
         int8_t timeComp(uint32_t t);
         void timeReset();
         bool isActivatedEvent(void);
-
+        void eventComplete(void);
         void handle();
 };

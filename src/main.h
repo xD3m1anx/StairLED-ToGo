@@ -1,21 +1,13 @@
-//#define BLYNK_PRINT Serial
-//#define OTA_PRINT   Serial
+#include "general.h"
 
 /* --------------------------------------------------------------------------------------------------------------- */
 
 #include <ESP8266WiFi.h>
 #include <BlynkSimpleEsp8266.h>
 #include <ArduinoOTA.h>
-#include "mydebug.h"
 #include "esp8266gpio.h"
-#include "general.h"
 #include "stairs.h"
 /* --------------------------------------------------------------------------------------------------------------- */
-
-//#define WIFI_CONNECT_HOME             //WiFi connection ( without Blynk )
-#define OTA_PGM                         //Over the Air programming
-#define BUILTIN_LED_ON                  //Turn ON led indication in loading 
-#define TELNET_DEBUG                    //Telnet debug
 
 #define OTA_HOSTNAME                    "stair"
 #define HOST_NAME                       "stair"

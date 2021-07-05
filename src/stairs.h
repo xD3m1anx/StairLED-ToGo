@@ -1,4 +1,3 @@
-
 #include "events.h"
 #include "general.h"
 
@@ -7,7 +6,7 @@
 #define STAIR_SPEED         2       //Rising/Falling speed in steps per second
 #define BRGHT_PREDIV        5
 #define BRGHT_IDLE          40      //must be div. BRGHT_PREDIV 
-#define BRGHT_WORKING       225     //must be div. BRGHT_PREDIV
+#define BRGHT_WORKING       255     //must be div. BRGHT_PREDIV
 #define STAIR_DELAY         (1000 / ((BRGHT_WORKING - BRGHT_IDLE) / BRGHT_PREDIV) / STAIR_SPEED)
 /* --- end --- */
 
@@ -23,7 +22,7 @@
 typedef unsigned char uint8_t;
 
 /* --- Режим работы --- */
-enum mode_e {FLASHTOGO, MODE1};
+enum mode_e {FLASHTOGO = 1, MODE1, MODE2, MODE3, DEMO};
 
 
 /* --- ступень --- */
@@ -59,12 +58,14 @@ class Stair {
         
         Stair(uint8_t amountStep, uint8_t amountLed);
 
-        int16_t render();
+        void render();
         void render(CRGB * stairLeds, CRGB fillPixel);
 
         void drawStep(uint8_t nStep);
         void draw();
         void draw(CRGB * stairLeds, CRGB fill);
+        void setStepColor(uint8_t step, CRGB clr);
+        void setStepColor(uint8_t step, CHSV clr);
         
 
         uint8_t getAmountStep();
@@ -76,6 +77,9 @@ class Stair {
         void stairMode_FlashToGo();
         void stairMode_FlashToGo2();
         void mode1();
+        void mode2();
+        void mode3();
+        void demoMode(uint8_t stage);
         void handle();  
 };
 

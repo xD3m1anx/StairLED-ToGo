@@ -1,22 +1,26 @@
 #include "events.h"
 
+#ifdef TELNET_DEBUG
+    extern RemoteDebug Debug;
+#endif
+
 /* === PRIVATE === */
 // ---- 
 void StairEvent::activateEvent(void) {
-    #ifdef SERIAL_DEBUG
-        Serial.print("Event: ");
-        Serial.print(name);
-        Serial.println(": Activate.");
+    #ifdef EVENTS_DEBUG
+        EVENTS_PRINT.print("Event: ");
+        EVENTS_PRINT.print(name);
+        EVENTS_PRINT.println(": Activate.");
     #endif
     active = true;
 }
 
 // ---- 
 void StairEvent::deactivateEvent(void) {
-    #ifdef SERIAL_DEBUG
-        Serial.print("Event: ");
-        Serial.print(name);
-        Serial.println(": Deactivate.");
+    #ifdef EVENTS_DEBUG
+        EVENTS_PRINT.print("Event: ");
+        EVENTS_PRINT.print(name);
+        EVENTS_PRINT.println(": Deactivate.");
     #endif
     active = false;
 }
@@ -39,11 +43,11 @@ void StairEvent::timeSave(void) {
     time = millis();
     activateEvent();
 
-    #ifdef SERIAL_DEBUG
-        Serial.print("Event: ");
-        Serial.print(name);
-        Serial.print(": Saved time ");
-        Serial.println(timeGetSaved());        
+    #ifdef EVENTS_DEBUG
+        EVENTS_PRINT.print("Event: ");
+        EVENTS_PRINT.print(name);
+        EVENTS_PRINT.print(": Saved time ");
+        EVENTS_PRINT.println(timeGetSaved());        
     #endif
 }
 
@@ -68,29 +72,34 @@ void StairEvent::timeReset() {
     time = 0;
     deactivateEvent();
     
-    #ifdef SERIAL_DEBUG
-        Serial.print("Event: ");
-        Serial.print(name);
-        Serial.println(": Time reset.");
+    #ifdef EVENTS_DEBUG
+        EVENTS_PRINT.print("Event: ");
+        EVENTS_PRINT.print(name);
+        EVENTS_PRINT.println(": Time reset.");
     #endif
 }
+
 
 // ---- 
 bool StairEvent::isActivatedEvent() {
     return active;
 }
-
+// ---- 
+void StairEvent::eventComplete() {
+    timeReset();
+    distance = sensor->dist();
+}
 // ---- 
 void StairEvent::handle() {
     float dstc = sensor->dist();
-    #ifdef SERIAL_DEBUG
-        Serial.print("Event: ");
-        Serial.print(name);
-        Serial.print(": distance ");
-        Serial.println(dstc);
+    #ifdef EVENTS_DEBUG
+        EVENTS_PRINT.print("Event: ");
+        EVENTS_PRINT.print(name);
+        EVENTS_PRINT.print(": distance ");
+        EVENTS_PRINT.println(dstc);
     #endif
     //if sensor find object
-    if(!isActivatedEvent() && dstc - distance > EVENT_HANDLE_DST_NOISE) {
+    if(!isActivatedEvent() && abs(dstc - distance) > EVENT_HANDLE_DST_NOISE) {
         timeSave();
         distance = dstc;
     }
@@ -98,10 +107,10 @@ void StairEvent::handle() {
     else if(isActivatedEvent() && millis() - timeGetSaved() >= EVENT_HANDLE_TIMEOUT) {
         timeReset();
         distance = dstc;
-        #ifdef SERIAL_DEBUG 
-            Serial.print("Event: ");
-            Serial.print(this->name);
-            Serial.println(": Timeout active status.");
+        #ifdef EVENTS_DEBUG 
+            EVENTS_PRINT.print("Event: ");
+            EVENTS_PRINT.print(this->name);
+            EVENTS_PRINT.println(": Timeout active status.");
         #endif
     }    
 }

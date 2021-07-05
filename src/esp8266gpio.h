@@ -38,4 +38,6 @@
 #define SK      GPIO7
 #define SC      GPIO6
 
+#define LED_BUILTIN     GPIO2
+
 #endif
